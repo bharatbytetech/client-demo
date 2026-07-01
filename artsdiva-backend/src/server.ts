@@ -8,6 +8,7 @@ import artistRoutes from "./routes/artist.routes";
 import artworkRoutes from "./routes/artwork.routes";
 import clientRoutes from "./routes/client.routes";
 import leaseRoutes from "./routes/lease.routes";
+import searchRoutes from "./routes/search.routes";
 
 // ---------------------------------------------------------------------------
 // Phase 1 scaffold bootstrap.
@@ -46,8 +47,7 @@ app.use("/api/artists", artistRoutes);
 app.use("/api/artworks", artworkRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/leases", leaseRoutes);
-
-// TODO(Phase 1): mount /api/search here.
+app.use("/api/search", searchRoutes);
 
 // Central error handler — catches anything forwarded via next(err),
 // including rejected promises from asyncHandler-wrapped controllers.
