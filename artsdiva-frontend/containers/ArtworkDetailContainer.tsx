@@ -1,10 +1,14 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@artsdiva/hooks/useAuth";
 import { useArtwork } from "@artsdiva/hooks/useArtwork";
+import { useLeases } from "@artsdiva/hooks/useLeases";
 import { ArtworkStatusBadge } from "@artsdiva/components/ArtworkStatusBadge";
 import { ArtworkImageGallery } from "@artsdiva/components/ArtworkImageGallery";
+import { LeaseStatusBadge } from "@artsdiva/components/LeaseStatusBadge";
+import { LeaseActionButtons } from "@artsdiva/components/LeaseActionButtons";
+import { LeaseFormContainer } from "@artsdiva/containers/LeaseFormContainer";
 import type { ArtworkStatus } from "@artsdiva/types/artwork.types";
 
 interface ArtworkDetailContainerProps {
@@ -14,7 +18,9 @@ interface ArtworkDetailContainerProps {
 export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const { artwork, isLoading, error, deleteArtwork, updateStatus, uploadImages } = useArtwork(artworkId);
+  const { artwork, isLoading, error, deleteArtwork, updateStatus, uploadImages, refetch } = useArtwork(artworkId);
+  const { isSubmitting: isLeaseActionSubmitting, completeLease, cancelLease } = useLeases({ onMutate: refetch });
+  const [showLeaseForm, setShowLeaseForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleDelete = (): void => {
@@ -39,6 +45,8 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
       </p>
     );
 
+  const activeLease = artwork.activeLease;
+
   return (
     <div>
       <h1 className="text-lg font-medium">{artwork.title}</h1>
@@ -60,16 +68,14 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
         <dd>
           <ArtworkStatusBadge status={artwork.status} />
         </dd>
-        {artwork.activeLease && (
+        {activeLease && (
           <>
             <dt>Leased to</dt>
-            <dd>
-              <button
-                onClick={() => void router.push(`/clients/${artwork.activeLease?.client.id}`)}
-                className="underline"
-              >
-                {artwork.activeLease.client.name}
+            <dd className="flex items-center gap-2">
+              <button onClick={() => void router.push(`/clients/${activeLease.client.id}`)} className="underline">
+                {activeLease.client.name}
               </button>
+              <LeaseStatusBadge status={activeLease.status} />
             </dd>
           </>
         )}
@@ -82,18 +88,30 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
       </dl>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <label className="text-sm">
-          Status:
-          <select
-            value={artwork.status}
-            onChange={(e) => void updateStatus(e.target.value as ArtworkStatus)}
-            className="ml-2 border px-2 py-1 text-sm"
-          >
-            <option value="IN_COLLECTION">In collection</option>
-            <option value="ON_LEASE">On lease</option>
-            <option value="SOLD">Sold</option>
-          </select>
-        </label>
+        {activeLease ? (
+          <LeaseActionButtons
+            isSubmitting={isLeaseActionSubmitting}
+            onComplete={() => void completeLease(activeLease.id)}
+            onCancel={() => void cancelLease(activeLease.id)}
+          />
+        ) : (
+          <>
+            <label className="text-sm">
+              Status:
+              <select
+                value={artwork.status}
+                onChange={(e) => void updateStatus(e.target.value as ArtworkStatus)}
+                className="ml-2 border px-2 py-1 text-sm"
+              >
+                <option value="IN_COLLECTION">In collection</option>
+                <option value="SOLD">Sold</option>
+              </select>
+            </label>
+            <button onClick={() => setShowLeaseForm((prev) => !prev)} className="border px-2 py-1 text-sm">
+              {showLeaseForm ? "Cancel lease form" : "Lease this artwork"}
+            </button>
+          </>
+        )}
 
         <button onClick={() => void router.push(`/artworks/${artworkId}/edit`)} className="border px-2 py-1 text-sm">
           Edit
@@ -105,6 +123,18 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
           </button>
         )}
       </div>
+
+      {showLeaseForm && !activeLease && (
+        <div className="mt-4">
+          <LeaseFormContainer
+            artworkId={artworkId}
+            onLeased={() => {
+              setShowLeaseForm(false);
+              void refetch();
+            }}
+          />
+        </div>
+      )}
 
       <h2 className="mt-6 text-sm font-medium">Images</h2>
       <ArtworkImageGallery images={artwork.images} />
