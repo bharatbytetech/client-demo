@@ -6,6 +6,7 @@ import { prisma } from "./lib/prisma";
 import authRoutes from "./routes/auth.routes";
 import artistRoutes from "./routes/artist.routes";
 import artworkRoutes from "./routes/artwork.routes";
+import clientRoutes from "./routes/client.routes";
 
 // ---------------------------------------------------------------------------
 // Phase 1 scaffold bootstrap.
@@ -42,8 +43,9 @@ app.get("/health/db", async (_req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/artists", artistRoutes);
 app.use("/api/artworks", artworkRoutes);
+app.use("/api/clients", clientRoutes);
 
-// TODO(Phase 1): mount /api/clients, /api/leases, /api/search here.
+// TODO(Phase 1): mount /api/leases, /api/search here.
 
 // Central error handler — catches anything forwarded via next(err),
 // including rejected promises from asyncHandler-wrapped controllers.
