@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@artsdiva/hooks/useAuth";
 import { useClient } from "@artsdiva/hooks/useClient";
+import { useDocuments } from "@artsdiva/hooks/useDocuments";
 import { LeaseHistoryTable } from "@artsdiva/components/LeaseHistoryTable";
+import { DocumentLogSection } from "@artsdiva/components/DocumentLogSection";
+import type { DocumentFileType } from "@artsdiva/types/document.types";
 
 interface ClientDetailContainerProps {
   clientId: string;
@@ -13,6 +17,8 @@ export function ClientDetailContainer({ clientId }: ClientDetailContainerProps) 
   const router = useRouter();
   const { user } = useAuth();
   const { client, isLoading, error, deleteClient } = useClient(clientId);
+  const documents = useDocuments("CLIENT", clientId);
+  const [fileType, setFileType] = useState<DocumentFileType>("MOU");
 
   const handleDelete = (): void => {
     if (!window.confirm("Delete this client?")) return;
@@ -79,6 +85,19 @@ export function ClientDetailContainer({ clientId }: ClientDetailContainerProps) 
 
       <h2 className="mt-6 text-sm font-medium">Lease history</h2>
       <LeaseHistoryTable leases={client.leases} onArtworkClick={(id) => void router.push(`/artworks/${id}`)} />
+
+      <div className="mt-6">
+        <DocumentLogSection
+          documents={documents.documents}
+          isLoading={documents.isLoading}
+          error={documents.error}
+          canDelete={user?.role === "ADMIN"}
+          fileType={fileType}
+          onFileTypeChange={setFileType}
+          onUpload={(file) => void documents.upload(fileType, file)}
+          onDelete={(id) => void documents.remove(id)}
+        />
+      </div>
     </div>
   );
 }
