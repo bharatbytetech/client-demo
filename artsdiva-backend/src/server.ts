@@ -21,9 +21,20 @@ import dashboardRoutes from "./routes/dashboard.routes";
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:3000";
 
-app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+// Allow any origin. Access-Control-Allow-Origin: "*" is disallowed by the
+// CORS spec when credentials are involved, so "allow all" with cookies
+// means reflecting back whatever Origin header the request actually sent,
+// per request, rather than a literal wildcard. Trade-off: any website can
+// make credentialed requests to this API on behalf of a logged-in user's
+// browser -- accepted for this internal staff tool per current direction;
+// revisit with a real allowlist if this ever needs to be public-facing.
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 

@@ -44,7 +44,8 @@ pnpm dev               # start the API (script targets src/server.ts — TBD)
 ## Environment variables
 
 See [.env.example](./.env.example). Key values: `DATABASE_URL`, `JWT_SECRET`,
-`JWT_EXPIRES_IN`, `PORT`, `CLIENT_ORIGIN`.
+`JWT_EXPIRES_IN`, `PORT`. CORS allows any origin (see `src/server.ts`), so
+no `CLIENT_ORIGIN` var is needed.
 
 ## Planned structure
 

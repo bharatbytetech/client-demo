@@ -80,13 +80,16 @@ share a registrable domain, so it just works across the two subdomains.
   | `JWT_EXPIRES_IN` | `7d` |
   | `NODE_ENV` | `production` |
   | `PORT` | `4000` |
-  | `CLIENT_ORIGIN` | `https://app.artsdiva.com` |
   | `BLOB_READ_WRITE_TOKEN` | from Vercel Blob (step 4) |
   | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` / `SEED_ADMIN_NAME` | your first admin login |
 
 - Once it's deployed, Render gives you a `*.onrender.com` URL first — add
   your **custom domain** `api.artsdiva.com` in Render's settings, then point
   a CNAME at the hostname Render gives you.
+- CORS is currently wide open (any origin, reflected per-request since
+  `credentials: true` rules out a literal `*`) — no `CLIENT_ORIGIN` env var
+  needed. Trade-off accepted for this internal tool; tighten to an
+  allowlist in `src/server.ts` if this ever becomes public-facing.
 
 ### 3. Frontend — Vercel
 
