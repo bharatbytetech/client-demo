@@ -1,7 +1,13 @@
 // Shared fetch wrapper used by every api/*.api.ts file. Not itself an
 // "api file" for a domain — those live alongside it (auth.api.ts, etc.).
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+// NEXT_PUBLIC_API_URL is inlined at BUILD TIME, not read at runtime — if a
+// deployment's env var wasn't set when it was built, this is `undefined` no
+// matter what you set afterward until the next build. Only the local dev
+// fallback is silent; a production build missing this var fails loudly
+// instead of quietly calling localhost:4000 from every visitor's browser.
+const CONFIGURED_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const DEV_FALLBACK_API_BASE_URL = "http://localhost:4000";
 
 interface ApiErrorBody {
   message?: string;
@@ -21,6 +27,15 @@ export async function apiRequest<TResponse>(
   path: string,
   options: RequestInit = {}
 ): Promise<TResponse> {
+  if (!CONFIGURED_API_BASE_URL && process.env.NODE_ENV === "production") {
+    throw new ApiError(
+      "This deployment is missing NEXT_PUBLIC_API_URL — the frontend doesn't know where the API is. Set it in the hosting platform's environment variables and redeploy (it's baked in at build time, so just adding it isn't enough).",
+      0
+    );
+  }
+
+  const API_BASE_URL = CONFIGURED_API_BASE_URL ?? DEV_FALLBACK_API_BASE_URL;
+
   // FormData (file uploads) must NOT get a manual Content-Type — the
   // browser needs to set its own multipart boundary.
   const isFormData = options.body instanceof FormData;
