@@ -2,6 +2,7 @@
   "name": "artsdiva-backend",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.12.1",
   "description": "ArtsDiva IMS backend — Node.js + TypeScript + Express + Prisma (MongoDB)",
   "main": "dist/server.js",
   "scripts": {
