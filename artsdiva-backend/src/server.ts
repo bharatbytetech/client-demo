@@ -10,6 +10,7 @@ import clientRoutes from "./routes/client.routes";
 import leaseRoutes from "./routes/lease.routes";
 import searchRoutes from "./routes/search.routes";
 import documentRoutes from "./routes/document.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 
 // ---------------------------------------------------------------------------
 // Phase 1 scaffold bootstrap.
@@ -50,6 +51,7 @@ app.use("/api/clients", clientRoutes);
 app.use("/api/leases", leaseRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Central error handler — catches anything forwarded via next(err),
 // including rejected promises from asyncHandler-wrapped controllers.

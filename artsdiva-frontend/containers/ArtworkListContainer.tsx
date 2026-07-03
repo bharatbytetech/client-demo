@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useArtworks } from "@artsdiva/hooks/useArtworks";
 import { useArtists } from "@artsdiva/hooks/useArtists";
@@ -9,6 +10,16 @@ export function ArtworkListContainer() {
   const { artworks, isLoading, error, search, setSearch, status, setStatus, artistId, setArtistId } =
     useArtworks();
   const { artists } = useArtists();
+
+  // Picks up ?status=... from links like the dashboard's "Active leases" card.
+  useEffect(() => {
+    if (!router.isReady) return;
+    const queryStatus = router.query.status;
+    if (typeof queryStatus === "string" && queryStatus !== status) {
+      setStatus(queryStatus as ArtworkStatus);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, router.query.status]);
 
   return (
     <div>
