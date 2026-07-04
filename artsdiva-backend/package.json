@@ -37,7 +37,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^2.1.0",
-    "@types/node": "^20.17.12",
+    "@types/node": "^24.18.0",
     "prisma": "^6.2.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
