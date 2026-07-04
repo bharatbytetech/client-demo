@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getArtworks, getArtworkById, createArtwork, updateArtwork,
   updateArtworkStatus, deleteArtwork, uploadArtworkImages,
@@ -26,7 +26,10 @@ export function useCreateArtwork() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateArtworkDTO) => createArtwork(data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY] }); },
+    onSuccess: (artwork) => {
+      qc.setQueryData([ARTWORKS_KEY, "detail", artwork.id], artwork);
+      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY, "list"] });
+    },
   });
 }
 
@@ -34,7 +37,10 @@ export function useUpdateArtwork(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: UpdateArtworkDTO) => updateArtwork(id, data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY] }); },
+    onSuccess: (artwork) => {
+      qc.setQueryData([ARTWORKS_KEY, "detail", id], artwork);
+      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY, "list"] });
+    },
   });
 }
 
@@ -42,7 +48,10 @@ export function useUpdateArtworkStatus(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (status: ArtworkStatus) => updateArtworkStatus(id, status),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY] }); },
+    onSuccess: (artwork) => {
+      qc.setQueryData([ARTWORKS_KEY, "detail", id], artwork);
+      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY, "list"] });
+    },
   });
 }
 

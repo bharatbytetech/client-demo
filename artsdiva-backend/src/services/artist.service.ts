@@ -1,4 +1,4 @@
-import type { Artist, Prisma } from "@prisma/client";
+﻿import type { Artist, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type { CreateArtistInput, ListArtistsQuery, UpdateArtistInput } from "../validators/artist.validator";
 import type { ArtistWithArtworks } from "../types/artist.types";
@@ -7,7 +7,10 @@ import type { PaginatedResponse } from "../types/common.types";
 export class ArtistNotFoundError extends Error {}
 export class ArtistHasArtworksError extends Error {}
 
-const notDeleted = { deletedAt: null } satisfies Prisma.ArtistWhereInput;
+// Safe soft-delete filter: use { deletedAt: null } with findFirst / findMany only.
+// Never pass this into findUnique — Prisma (MongoDB) silently returns null when
+// non-unique fields appear in a findUnique WHERE clause.
+const notDeleted = { deletedAt: null };
 
 export async function listArtists(query: ListArtistsQuery): Promise<PaginatedResponse<Artist>> {
   const page = query.page ?? 1;
@@ -32,7 +35,8 @@ export async function listArtists(query: ListArtistsQuery): Promise<PaginatedRes
 }
 
 export async function getArtistById(id: string): Promise<ArtistWithArtworks> {
-  const artist = await prisma.artist.findUnique({
+  // findFirst instead of findUnique so we can compound with deletedAt safely.
+  const artist = await prisma.artist.findFirst({
     where: { id, ...notDeleted },
     include: {
       artworks: {
@@ -62,7 +66,7 @@ export async function createArtist(input: CreateArtistInput): Promise<Artist> {
 }
 
 export async function updateArtist(id: string, input: UpdateArtistInput): Promise<Artist> {
-  const existing = await prisma.artist.findUnique({ where: { id, ...notDeleted } });
+  const existing = await prisma.artist.findFirst({ where: { id, ...notDeleted } });
   if (!existing) {
     throw new ArtistNotFoundError("Artist not found");
   }
@@ -80,7 +84,7 @@ export async function updateArtist(id: string, input: UpdateArtistInput): Promis
 }
 
 export async function deleteArtist(id: string): Promise<void> {
-  const artist = await prisma.artist.findUnique({
+  const artist = await prisma.artist.findFirst({
     where: { id, ...notDeleted },
     include: { artworks: { where: { deletedAt: null }, select: { id: true } } },
   });

@@ -1,4 +1,4 @@
-import type { Artwork, Prisma } from "@prisma/client";
+﻿import type { Artwork, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type {
   CreateArtworkInput,
@@ -13,7 +13,7 @@ export class ArtworkNotFoundError extends Error {}
 export class ArtistNotFoundForArtworkError extends Error {}
 export class ArtworkHasLeasesError extends Error {}
 
-const notDeleted = { deletedAt: null } satisfies Prisma.ArtworkWhereInput;
+const notDeleted = { deletedAt: null };
 
 export async function listArtworks(query: ListArtworksQuery): Promise<PaginatedResponse<Artwork>> {
   const page = query.page ?? 1;
@@ -48,7 +48,7 @@ export async function listArtworks(query: ListArtworksQuery): Promise<PaginatedR
 }
 
 export async function getArtworkById(id: string): Promise<ArtworkWithRelations> {
-  const artwork = await prisma.artwork.findUnique({
+  const artwork = await prisma.artwork.findFirst({
     where: { id, ...notDeleted },
     include: {
       artist: true,
@@ -70,8 +70,8 @@ export async function getArtworkById(id: string): Promise<ArtworkWithRelations> 
 }
 
 export async function createArtwork(input: CreateArtworkInput): Promise<Artwork> {
-  const artist = await prisma.artist.findUnique({
-    where: { id: input.artistId, deletedAt: null },
+  const artist = await prisma.artist.findFirst({
+    where: { id: input.artistId, ...notDeleted },
   });
   if (!artist) {
     throw new ArtistNotFoundForArtworkError("Artist not found");
@@ -93,14 +93,14 @@ export async function createArtwork(input: CreateArtworkInput): Promise<Artwork>
 }
 
 export async function updateArtwork(id: string, input: UpdateArtworkInput): Promise<Artwork> {
-  const existing = await prisma.artwork.findUnique({ where: { id, ...notDeleted } });
+  const existing = await prisma.artwork.findFirst({ where: { id, ...notDeleted } });
   if (!existing) {
     throw new ArtworkNotFoundError("Artwork not found");
   }
 
   if (input.artistId) {
-    const artist = await prisma.artist.findUnique({
-      where: { id: input.artistId, deletedAt: null },
+    const artist = await prisma.artist.findFirst({
+      where: { id: input.artistId, ...notDeleted },
     });
     if (!artist) {
       throw new ArtistNotFoundForArtworkError("Artist not found");
@@ -127,7 +127,7 @@ export async function updateArtworkStatus(
   id: string,
   input: UpdateArtworkStatusInput
 ): Promise<Artwork> {
-  const existing = await prisma.artwork.findUnique({ where: { id, ...notDeleted } });
+  const existing = await prisma.artwork.findFirst({ where: { id, ...notDeleted } });
   if (!existing) {
     throw new ArtworkNotFoundError("Artwork not found");
   }
@@ -139,7 +139,7 @@ export async function updateArtworkStatus(
 }
 
 export async function addArtworkImages(id: string, urls: string[]): Promise<Artwork> {
-  const existing = await prisma.artwork.findUnique({ where: { id, ...notDeleted } });
+  const existing = await prisma.artwork.findFirst({ where: { id, ...notDeleted } });
   if (!existing) {
     throw new ArtworkNotFoundError("Artwork not found");
   }
@@ -151,9 +151,9 @@ export async function addArtworkImages(id: string, urls: string[]): Promise<Artw
 }
 
 export async function deleteArtwork(id: string): Promise<void> {
-  const artwork = await prisma.artwork.findUnique({
+  const artwork = await prisma.artwork.findFirst({
     where: { id, ...notDeleted },
-    include: { leaseHistory: { select: { id: true } } },
+    include: { leaseHistory: { where: { status: "ACTIVE" }, select: { id: true } } },
   });
 
   if (!artwork) {
@@ -162,7 +162,7 @@ export async function deleteArtwork(id: string): Promise<void> {
 
   if (artwork.leaseHistory.length > 0) {
     throw new ArtworkHasLeasesError(
-      "Cannot delete artwork with existing lease records. Complete or cancel all leases first."
+      "Cannot delete artwork with an active lease. Complete or cancel the lease first."
     );
   }
 

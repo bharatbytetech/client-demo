@@ -1,4 +1,4 @@
-import type { Client, Prisma } from "@prisma/client";
+﻿import type { Client, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type { CreateClientInput, ListClientsQuery, UpdateClientInput } from "../validators/client.validator";
 import type { ClientWithLeaseHistory } from "../types/client.types";
@@ -7,7 +7,7 @@ import type { PaginatedResponse } from "../types/common.types";
 export class ClientNotFoundError extends Error {}
 export class ClientHasLeasesError extends Error {}
 
-const notDeleted = { deletedAt: null } satisfies Prisma.ClientWhereInput;
+const notDeleted = { deletedAt: null };
 
 export async function listClients(query: ListClientsQuery): Promise<PaginatedResponse<Client>> {
   const page = query.page ?? 1;
@@ -32,7 +32,7 @@ export async function listClients(query: ListClientsQuery): Promise<PaginatedRes
 }
 
 export async function getClientById(id: string): Promise<ClientWithLeaseHistory> {
-  const client = await prisma.client.findUnique({
+  const client = await prisma.client.findFirst({
     where: { id, ...notDeleted },
     include: {
       leases: {
@@ -65,7 +65,7 @@ export async function createClient(input: CreateClientInput): Promise<Client> {
 }
 
 export async function updateClient(id: string, input: UpdateClientInput): Promise<Client> {
-  const existing = await prisma.client.findUnique({ where: { id, ...notDeleted } });
+  const existing = await prisma.client.findFirst({ where: { id, ...notDeleted } });
   if (!existing) {
     throw new ClientNotFoundError("Client not found");
   }
@@ -82,7 +82,7 @@ export async function updateClient(id: string, input: UpdateClientInput): Promis
 }
 
 export async function deleteClient(id: string): Promise<void> {
-  const client = await prisma.client.findUnique({
+  const client = await prisma.client.findFirst({
     where: { id, ...notDeleted },
     include: { leases: { select: { id: true } } },
   });
