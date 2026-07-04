@@ -70,7 +70,7 @@ export function ArtistFormContainer({ artistId }: ArtistFormContainerProps) {
   const updateMutation = useUpdateArtist(artistId ?? "");
 
   const redirectTo = typeof router.query.redirectTo === "string" ? router.query.redirectTo : undefined;
-  // Name typed into an ArtistAutocomplete before clicking "+ Create new artist".
+  // Optional ?name= prefill (e.g. handed over from another form).
   const prefillName = typeof router.query.name === "string" ? router.query.name : "";
 
   if (isEdit && artistLoading) return <SkeletonDetailCard />;

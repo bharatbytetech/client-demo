@@ -4,7 +4,7 @@ import TextField from "@mui/material/TextField";
 import FormHelperText from "@mui/material/FormHelperText";
 import FormLabel from "@mui/material/FormLabel";
 import Alert from "@mui/material/Alert";
-import { ClientAutocomplete } from "@artsdiva/components/fields/ClientAutocomplete";
+import { ClientSelect } from "@artsdiva/components/fields/ClientSelect";
 import { FieldLabel } from "@artsdiva/components/fields/FieldInfo";
 import type { FieldErrors } from "@artsdiva/api/http";
 
@@ -45,7 +45,7 @@ export function LeaseForm({
 
       <Box>
         <FormLabel required sx={{ display: "block", mb: 0.5, fontSize: "0.875rem" }}>Client</FormLabel>
-        <ClientAutocomplete
+        <ClientSelect
           value={values.clientId}
           onChange={(id) => onChange("clientId", id)}
           error={fieldErrors?.clientId?.[0]}

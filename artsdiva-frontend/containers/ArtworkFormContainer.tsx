@@ -16,7 +16,7 @@ import { BackLink } from "@artsdiva/components/ui/BackLink";
 import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useArtwork, useCreateArtwork, useUpdateArtwork } from "@artsdiva/hooks/useArtworks";
-import { ArtistAutocomplete } from "@artsdiva/components/fields/ArtistAutocomplete";
+import { ArtistSelect } from "@artsdiva/components/fields/ArtistSelect";
 import { DimensionsInput } from "@artsdiva/components/fields/DimensionsInput";
 import { YearPickerField } from "@artsdiva/components/fields/YearPickerField";
 import { FieldLabel } from "@artsdiva/components/fields/FieldInfo";
@@ -90,7 +90,7 @@ export function ArtworkFormContainer({ artworkId }: ArtworkFormContainerProps) {
   const initialValues: FormValues = artwork
     ? {
         title: artwork.title,
-        artistId: artwork.artistId,
+        artistId: prefillArtistId ?? artwork.artistId,
         medium: artwork.medium,
         dimensions: artwork.dimensions,
         year: artwork.year,
@@ -171,7 +171,7 @@ export function ArtworkFormContainer({ artworkId }: ArtworkFormContainerProps) {
                   {/* Artist */}
                   <Box>
                     <FieldLabel label="Artist" required />
-                    <ArtistAutocomplete
+                    <ArtistSelect
                       value={values.artistId}
                       onChange={(id) => void setFieldValue("artistId", id)}
                       error={touched.artistId ? errors.artistId : undefined}

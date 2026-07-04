@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { useLeases } from "@artsdiva/hooks/useLeases";
 import { LeaseForm, type LeaseFormValues } from "@artsdiva/components/LeaseForm";
 
@@ -11,8 +12,18 @@ interface LeaseFormContainerProps {
 }
 
 export function LeaseFormContainer({ artworkId, onLeased, onCancel }: LeaseFormContainerProps) {
+  const router = useRouter();
   const { isSubmitting, error, fieldErrors, createLease } = useLeases({ onMutate: onLeased });
   const [values, setValues] = useState<LeaseFormValues>(emptyValues);
+
+  // Returning from "New client": the create form redirects back here with
+  // ?autoClientId= so the freshly created client is pre-selected.
+  const autoClientId = typeof router.query.autoClientId === "string" ? router.query.autoClientId : undefined;
+  useEffect(() => {
+    if (autoClientId) {
+      setValues((prev) => ({ ...prev, clientId: autoClientId }));
+    }
+  }, [autoClientId]);
 
   const handleChange = <K extends keyof LeaseFormValues>(field: K, value: LeaseFormValues[K]): void => {
     setValues((prev) => ({ ...prev, [field]: value }));

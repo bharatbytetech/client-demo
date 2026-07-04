@@ -26,9 +26,9 @@ export function GlobalSearch() {
   const [inputValue, setInputValue] = useState("");
   const debounced = useDebounce(inputValue, 300);
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, isError } = useQuery({
     queryKey: ["global-search", debounced],
-    queryFn: () => search(debounced),
+    queryFn: () => search(debounced.trim()),
     enabled: debounced.trim().length >= 2,
     staleTime: 10_000,
   });
@@ -59,9 +59,14 @@ export function GlobalSearch() {
       autoHighlight
       blurOnSelect
       noOptionsText={
-        debounced.trim().length < 2 ? "Type at least 2 characters" : "No results found"
+        isError
+          ? "Search failed — check your connection"
+          : debounced.trim().length < 2
+            ? "Type at least 2 characters"
+            : "No results found"
       }
-      sx={{ width: { xs: 170, sm: 260, md: 340 } }}
+      sx={{ width: { xs: 170, sm: 280, md: 360 } }}
+      slotProps={{ popper: { sx: { minWidth: 320 } } }}
       renderOption={(props, option) => (
         <Box component="li" {...props} key={`${option.type}-${option.id}`} sx={{ display: "flex", gap: 1 }}>
           <Box sx={{ color: "text.disabled", display: "flex", alignItems: "center" }}>
@@ -77,6 +82,18 @@ export function GlobalSearch() {
           <TextField
             {...params}
             placeholder="Search artists, artworks, clients…"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: "#F1F3F6",
+                borderRadius: 2,
+                "& fieldset": { border: "none" },
+                "&:hover": { backgroundColor: "#EAEDF1" },
+                "&.Mui-focused": {
+                  backgroundColor: "#fff",
+                  boxShadow: "0 0 0 2px rgba(25, 118, 210, 0.25)",
+                },
+              },
+            }}
             slotProps={{
               input: {
                 ...p.InputProps,

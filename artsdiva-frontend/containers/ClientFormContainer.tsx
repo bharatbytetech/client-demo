@@ -79,7 +79,7 @@ export function ClientFormContainer({ clientId }: ClientFormContainerProps) {
   const createMutation = useCreateClient();
   const updateMutation = useUpdateClient(clientId ?? "");
 
-  // Name typed into a ClientAutocomplete before clicking "+ Create new client",
+  // Optional ?name= prefill (e.g. handed over from another form),
   // plus the page to return to once the client is created.
   const prefillName = typeof router.query.name === "string" ? router.query.name : "";
   const redirectTo = typeof router.query.redirectTo === "string" ? router.query.redirectTo : undefined;

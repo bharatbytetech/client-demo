@@ -10,7 +10,6 @@ import Alert from "@mui/material/Alert";
 import { BackLink } from "@artsdiva/components/ui/BackLink";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
 import { useClient, useDeleteClient } from "@artsdiva/hooks/useClients";
 import { SkeletonDetailCard } from "@artsdiva/components/ui/SkeletonTable";
 import { ConfirmDialog } from "@artsdiva/components/ui/ConfirmDialog";
@@ -85,14 +84,6 @@ export function ClientDetailContainer({ clientId }: ClientDetailContainerProps) 
                 )}
               </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={() => void router.push(`/artworks/new?clientId=${clientId}`)}
-                >
-                  Add Artwork
-                </Button>
                 <Button
                   variant="outlined"
                   size="small"

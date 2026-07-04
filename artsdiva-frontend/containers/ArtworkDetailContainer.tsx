@@ -36,6 +36,13 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
   const [selectedImage, setSelectedImage] = useState(0);
   const [leaseOpen, setLeaseOpen] = useState(false);
 
+  // Returning from "New client" inside the lease form — reopen the panel so
+  // the user sees their new client already selected.
+  const autoClientId = typeof router.query.autoClientId === "string" ? router.query.autoClientId : undefined;
+  React.useEffect(() => {
+    if (autoClientId) setLeaseOpen(true);
+  }, [autoClientId]);
+
   const { data: artwork, isLoading, error } = useArtwork(artworkId);
   const deleteMutation = useDeleteArtwork();
   const statusMutation = useUpdateArtworkStatus(artworkId);
