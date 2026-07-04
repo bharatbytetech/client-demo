@@ -1,4 +1,4 @@
-﻿import type { Client, Prisma } from "@prisma/client";
+import type { Client, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type { CreateClientInput, ListClientsQuery, UpdateClientInput } from "../validators/client.validator";
 import type { ClientWithLeaseHistory } from "../types/client.types";
@@ -7,14 +7,14 @@ import type { PaginatedResponse } from "../types/common.types";
 export class ClientNotFoundError extends Error {}
 export class ClientHasLeasesError extends Error {}
 
-const notDeleted = { deletedAt: null };
+const active = { isDeleted: false };
 
 export async function listClients(query: ListClientsQuery): Promise<PaginatedResponse<Client>> {
   const page = query.page ?? 1;
   const limit = query.limit ?? 20;
 
   const where: Prisma.ClientWhereInput = {
-    ...notDeleted,
+    ...active,
     ...(query.search ? { name: { contains: query.search, mode: "insensitive" } } : {}),
   };
 
@@ -33,7 +33,7 @@ export async function listClients(query: ListClientsQuery): Promise<PaginatedRes
 
 export async function getClientById(id: string): Promise<ClientWithLeaseHistory> {
   const client = await prisma.client.findFirst({
-    where: { id, ...notDeleted },
+    where: { id, ...active },
     include: {
       leases: {
         orderBy: { startDate: "desc" },
@@ -65,7 +65,7 @@ export async function createClient(input: CreateClientInput): Promise<Client> {
 }
 
 export async function updateClient(id: string, input: UpdateClientInput): Promise<Client> {
-  const existing = await prisma.client.findFirst({ where: { id, ...notDeleted } });
+  const existing = await prisma.client.findFirst({ where: { id, ...active } });
   if (!existing) {
     throw new ClientNotFoundError("Client not found");
   }
@@ -83,7 +83,7 @@ export async function updateClient(id: string, input: UpdateClientInput): Promis
 
 export async function deleteClient(id: string): Promise<void> {
   const client = await prisma.client.findFirst({
-    where: { id, ...notDeleted },
+    where: { id, ...active },
     include: { leases: { select: { id: true } } },
   });
 
@@ -99,6 +99,6 @@ export async function deleteClient(id: string): Promise<void> {
 
   await prisma.client.update({
     where: { id },
-    data: { deletedAt: new Date() },
+    data: { isDeleted: true },
   });
 }

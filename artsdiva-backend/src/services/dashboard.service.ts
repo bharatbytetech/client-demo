@@ -1,13 +1,13 @@
-﻿import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma";
 import type { DashboardStats } from "../types/dashboard.types";
 
-const notDeleted = { deletedAt: null };
+const active = { isDeleted: false };
 
 export async function getStats(): Promise<DashboardStats> {
   const [artistsCount, artworksCount, clientsCount, activeLeasesCount] = await Promise.all([
-    prisma.artist.count({ where: notDeleted }),
-    prisma.artwork.count({ where: notDeleted }),
-    prisma.client.count({ where: notDeleted }),
+    prisma.artist.count({ where: active }),
+    prisma.artwork.count({ where: active }),
+    prisma.client.count({ where: active }),
     prisma.lease.count({ where: { status: "ACTIVE" } }),
   ]);
 

@@ -45,12 +45,12 @@ export async function getLeaseById(id: string): Promise<LeaseWithRelations> {
 }
 
 export async function createLease(input: CreateLeaseInput): Promise<Lease> {
-  const artwork = await prisma.artwork.findUnique({ where: { id: input.artworkId, deletedAt: null } });
+  const artwork = await prisma.artwork.findFirst({ where: { id: input.artworkId, isDeleted: false } });
   if (!artwork) {
     throw new ArtworkNotFoundForLeaseError("Artwork not found");
   }
 
-  const client = await prisma.client.findUnique({ where: { id: input.clientId, deletedAt: null } });
+  const client = await prisma.client.findFirst({ where: { id: input.clientId, isDeleted: false } });
   if (!client) {
     throw new ClientNotFoundForLeaseError("Client not found");
   }

@@ -1,4 +1,4 @@
-﻿import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma";
 import type { SearchQuery } from "../validators/search.validator";
 import type { SearchResults } from "../types/search.types";
 
@@ -10,7 +10,7 @@ export async function search(query: SearchQuery): Promise<SearchResults> {
   const [artworks, artists, clients] = await Promise.all([
     prisma.artwork.findMany({
       where: {
-        deletedAt: null,
+        isDeleted: false,
         OR: [
           { title: { contains: q, mode: "insensitive" } },
           { medium: { contains: q, mode: "insensitive" } },
@@ -21,7 +21,7 @@ export async function search(query: SearchQuery): Promise<SearchResults> {
     }),
     prisma.artist.findMany({
       where: {
-        deletedAt: null,
+        isDeleted: false,
         name: { contains: q, mode: "insensitive" },
       },
       select: { id: true, name: true },
@@ -29,7 +29,7 @@ export async function search(query: SearchQuery): Promise<SearchResults> {
     }),
     prisma.client.findMany({
       where: {
-        deletedAt: null,
+        isDeleted: false,
         name: { contains: q, mode: "insensitive" },
       },
       select: { id: true, name: true },

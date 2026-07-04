@@ -93,12 +93,13 @@ model Artist {
 
   artworks Artwork[]
 
-  deletedAt DateTime?
+  isDeleted Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([name])
+  @@index([isDeleted])
 }
 
 model Artwork {
@@ -117,7 +118,7 @@ model Artwork {
 
   leaseHistory Lease[]
 
-  deletedAt DateTime?
+  isDeleted Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -125,6 +126,7 @@ model Artwork {
   @@index([artistId])
   @@index([status])
   @@index([title])
+  @@index([isDeleted])
 }
 
 model Client {
@@ -136,12 +138,13 @@ model Client {
 
   leases Lease[]
 
-  deletedAt DateTime?
+  isDeleted Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([name])
+  @@index([isDeleted])
 }
 
 /// Join entity that makes Artwork <-> Client relational and drives
