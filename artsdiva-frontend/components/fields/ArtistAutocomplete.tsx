@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import MenuItem from "@mui/material/MenuItem";
+import AddIcon from "@mui/icons-material/Add";
 import { getArtists, getArtistById } from "@artsdiva/api/artist.api";
 import type { Artist } from "@artsdiva/types/artist.types";
 
@@ -17,15 +18,9 @@ interface ArtistAutocompleteProps {
   redirectOnCreate?: string;
 }
 
-const CREATE_OPTION: Artist = {
-  id: "__create__",
-  name: "__create__",
-  commissionTerms: "",
-  mouStatus: "PENDING",
-  createdAt: "",
-  updatedAt: "",
-};
-
+// Simple and reliable: load the artist list once, let MUI filter it
+// client-side as the user types, and keep "add a new artist" as a plain
+// button next to the field instead of a fake option inside the dropdown.
 export function ArtistAutocomplete({
   value,
   onChange,
@@ -33,106 +28,100 @@ export function ArtistAutocomplete({
   disabled,
   redirectOnCreate,
 }: ArtistAutocompleteProps) {
-  const [inputValue, setInputValue] = useState("");
-
   const { data, isLoading } = useQuery({
-    queryKey: ["artists-autocomplete", inputValue],
-    queryFn: () => getArtists({ search: inputValue, limit: 30 }),
-    staleTime: 10_000,
-  });
-
-  // When a value (ID) is pre-filled but not in the search results, fetch by ID
-  const { data: prefilledArtist } = useQuery({
-    queryKey: ["artist-prefill", value],
-    queryFn: () => getArtistById(value),
-    enabled: !!value && value !== "__create__",
-    staleTime: 60_000,
+    queryKey: ["artists-options"],
+    queryFn: () => getArtists({ limit: 100 }),
+    staleTime: 30_000,
   });
 
   const artists = data?.data ?? [];
 
-  // Merge the prefilled artist into options if not already present
-  const allOptions: Artist[] = prefilledArtist && !artists.find((a) => a.id === prefilledArtist.id)
-    ? [prefilledArtist, ...artists]
-    : artists;
+  // Edit mode: the pre-selected artist may not be inside the first page of
+  // options — fetch it by ID so the field can still display it.
+  const inList = artists.some((a) => a.id === value);
+  const { data: prefilled } = useQuery({
+    queryKey: ["artist-prefill", value],
+    queryFn: () => getArtistById(value),
+    enabled: !!value && !isLoading && !inList,
+    staleTime: 60_000,
+  });
 
-  const selectedArtist = allOptions.find((a) => a.id === value) ?? null;
+  const options: Artist[] =
+    prefilled && !inList ? [prefilled, ...artists] : artists;
+
+  const selected = options.find((a) => a.id === value) ?? null;
 
   const handleCreateNew = () => {
     const params = new URLSearchParams();
     if (redirectOnCreate) params.set("redirectTo", redirectOnCreate);
-    // Carry the typed name over so the create form starts pre-filled with it.
-    if (inputValue.trim()) params.set("name", inputValue.trim());
     window.location.href = `/artists/new?${params.toString()}`;
   };
 
   return (
-    <Autocomplete
-      options={[...allOptions, CREATE_OPTION]}
-      getOptionLabel={(opt: Artist) => opt.id === "__create__" ? "" : opt.name}
-      value={selectedArtist}
-      inputValue={inputValue}
-      onInputChange={(_, val, reason) => {
-        // "reset" fires when MUI syncs the input to the selected option's
-        // label (on select / prefill). Accept it so the chosen artist's name
-        // actually appears in the field; only ignore resets to empty while a
-        // value is selected (prevents flicker during option reloads).
-        if (reason === "reset" && val === "" && value) return;
-        setInputValue(val);
-      }}
-      onChange={(_, opt) => {
-        if (!opt) { onChange(""); return; }
-        if (opt.id === "__create__") { handleCreateNew(); return; }
-        onChange(opt.id);
-      }}
-      disabled={disabled}
-      loading={isLoading}
-      filterOptions={(opts) => opts} // server-side filtering
-      isOptionEqualToValue={(opt, val) => opt.id === val.id}
-      renderOption={(props, option) => {
-        if (option.id === "__create__") {
-          return (
-            <Box component="li" {...props} key="__create__"
-              sx={{ borderTop: "1px solid", borderColor: "divider", color: "primary.main", fontWeight: 600, py: 1 }}
-            >
-              + Create new artist {inputValue ? `"${inputValue}"` : ""}
-            </Box>
-          );
+    <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+      <Autocomplete<Artist>
+        sx={{ flex: 1 }}
+        size="small"
+        options={options}
+        getOptionLabel={(opt) => opt.name}
+        value={selected}
+        onChange={(_, opt) => onChange(opt?.id ?? "")}
+        isOptionEqualToValue={(opt, val) => opt.id === val.id}
+        loading={isLoading}
+        disabled={disabled}
+        noOptionsText={
+          artists.length === 0
+            ? "No artists yet — click New to add one"
+            : "No matching artists"
         }
-        return (
+        renderOption={(props, option) => (
           <Box component="li" {...props} key={option.id}>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>{option.name}</Typography>
-              <Typography variant="caption" color="text.secondary">{option.commissionTerms}</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {option.name}
+              </Typography>
+              {option.commissionTerms && (
+                <Typography variant="caption" color="text.secondary">
+                  {option.commissionTerms}
+                </Typography>
+              )}
             </Box>
           </Box>
-        );
-      }}
-      renderInput={(params) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const p = params as any;
-        return (
-          <TextField
-            {...params}
-            size="small"
-            placeholder="Search artist..."
-            error={!!error}
-            helperText={error}
-            slotProps={{
-              input: {
-                ...p.InputProps,
-                endAdornment: (
-                  <>
-                    {isLoading && <CircularProgress size={16} />}
-                    {p.InputProps?.endAdornment}
-                  </>
-                ),
-              },
-              htmlInput: p.inputProps,
-            }}
-          />
-        );
-      }}
-    />
+        )}
+        renderInput={(params) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const p = params as any;
+          return (
+            <TextField
+              {...params}
+              placeholder="Select or search artist"
+              error={!!error}
+              helperText={error}
+              slotProps={{
+                input: {
+                  ...p.InputProps,
+                  endAdornment: (
+                    <>
+                      {isLoading && <CircularProgress size={16} />}
+                      {p.InputProps?.endAdornment}
+                    </>
+                  ),
+                },
+                htmlInput: p.inputProps,
+              }}
+            />
+          );
+        }}
+      />
+      <Button
+        variant="outlined"
+        onClick={handleCreateNew}
+        disabled={disabled}
+        startIcon={<AddIcon />}
+        sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
+      >
+        New
+      </Button>
+    </Box>
   );
 }

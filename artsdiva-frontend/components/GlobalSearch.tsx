@@ -56,10 +56,12 @@ export function GlobalSearch() {
         void router.push(`${TYPE_META[opt.type].path}/${opt.id}`);
       }}
       loading={isFetching}
+      autoHighlight
+      blurOnSelect
       noOptionsText={
         debounced.trim().length < 2 ? "Type at least 2 characters" : "No results found"
       }
-      sx={{ width: { xs: 170, sm: 260, md: 320 } }}
+      sx={{ width: { xs: 170, sm: 260, md: 340 } }}
       renderOption={(props, option) => (
         <Box component="li" {...props} key={`${option.type}-${option.id}`} sx={{ display: "flex", gap: 1 }}>
           <Box sx={{ color: "text.disabled", display: "flex", alignItems: "center" }}>
