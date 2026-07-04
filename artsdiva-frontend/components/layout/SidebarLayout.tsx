@@ -110,7 +110,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="subtitle1" fontWeight={700} sx={{ flexGrow: 1 }}>
+          <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 700 }}>
             ArtsDiva
           </Typography>
           {user && (

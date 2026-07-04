@@ -1,3 +1,10 @@
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import FormHelperText from "@mui/material/FormHelperText";
+import FormLabel from "@mui/material/FormLabel";
+import Alert from "@mui/material/Alert";
+import { ClientAutocomplete } from "@artsdiva/components/fields/ClientAutocomplete";
 import type { FieldErrors } from "@artsdiva/api/http";
 
 export interface LeaseFormValues {
@@ -6,74 +13,85 @@ export interface LeaseFormValues {
   terms: string;
 }
 
-interface LeaseFormClientOption {
-  id: string;
-  name: string;
-}
-
 interface LeaseFormProps {
   values: LeaseFormValues;
-  clients: LeaseFormClientOption[];
+  artworkId: string;
   isSubmitting: boolean;
   error: string | null;
   fieldErrors: FieldErrors | null;
   onChange: <K extends keyof LeaseFormValues>(field: K, value: LeaseFormValues[K]) => void;
   onSubmit: () => void;
+  onCancel?: () => void;
 }
 
-export function LeaseForm({ values, clients, isSubmitting, error, fieldErrors, onChange, onSubmit }: LeaseFormProps) {
+export function LeaseForm({
+  values,
+  artworkId,
+  isSubmitting,
+  error,
+  fieldErrors,
+  onChange,
+  onSubmit,
+  onCancel,
+}: LeaseFormProps) {
   return (
-    <form
-      className="flex max-w-md flex-col gap-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit();
-      }}
+    <Box
+      component="form"
+      onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
+      sx={{ display: "flex", flexDirection: "column", gap: 2 }}
     >
-      <label className="flex flex-col gap-1 text-sm">
-        Client
-        <select
-          className="border px-2 py-1"
-          value={values.clientId}
-          onChange={(e) => onChange("clientId", e.target.value)}
-          required
-        >
-          <option value="">Select a client</option>
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.name}
-            </option>
-          ))}
-        </select>
-        {fieldErrors?.clientId && <span className="text-xs text-red-700">{fieldErrors.clientId[0]}</span>}
-      </label>
+      {error && <Alert severity="error">{error}</Alert>}
 
-      <label className="flex flex-col gap-1 text-sm">
-        Start date
-        <input
+      <Box>
+        <FormLabel required sx={{ display: "block", mb: 0.5, fontSize: "0.875rem" }}>Client</FormLabel>
+        <ClientAutocomplete
+          value={values.clientId}
+          onChange={(id) => onChange("clientId", id)}
+          error={fieldErrors?.clientId?.[0]}
+          disabled={isSubmitting}
+          redirectOnCreate={`/artworks/${artworkId}`}
+        />
+      </Box>
+
+      <Box>
+        <TextField
+          label="Start Date"
           type="date"
-          className="border px-2 py-1"
+          size="small"
+          required
+          fullWidth
           value={values.startDate}
           onChange={(e) => onChange("startDate", e.target.value)}
-          required
+          error={!!fieldErrors?.startDate}
+          helperText={fieldErrors?.startDate?.[0]}
+          disabled={isSubmitting}
+          slotProps={{ inputLabel: { shrink: true } }}
         />
-        {fieldErrors?.startDate && <span className="text-xs text-red-700">{fieldErrors.startDate[0]}</span>}
-      </label>
+      </Box>
 
-      <label className="flex flex-col gap-1 text-sm">
-        Terms
-        <textarea className="border px-2 py-1" value={values.terms} onChange={(e) => onChange("terms", e.target.value)} />
-      </label>
+      <Box>
+        <TextField
+          label="Terms"
+          multiline
+          minRows={3}
+          size="small"
+          fullWidth
+          value={values.terms}
+          onChange={(e) => onChange("terms", e.target.value)}
+          disabled={isSubmitting}
+        />
+      </Box>
 
-      {error && (
-        <p role="alert" className="text-sm text-red-700">
-          {error}
-        </p>
-      )}
-
-      <button type="submit" disabled={isSubmitting} className="border px-2 py-1 text-sm">
-        {isSubmitting ? "Saving..." : "Lease artwork"}
-      </button>
-    </form>
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 1.5, mt: 1 }}>
+        {onCancel && (
+          <Button variant="outlined" onClick={onCancel} disabled={isSubmitting} sx={{ minWidth: 100 }}>
+            Cancel
+          </Button>
+        )}
+        <Button type="submit" variant="contained" disabled={isSubmitting} sx={{ minWidth: 120 }}>
+          {isSubmitting ? "Saving…" : "Lease Artwork"}
+        </Button>
+      </Box>
+    </Box>
   );
 }

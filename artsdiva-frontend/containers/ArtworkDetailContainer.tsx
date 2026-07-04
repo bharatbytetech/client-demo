@@ -10,6 +10,7 @@ import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
+import Collapse from "@mui/material/Collapse";
 import Link from "next/link";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -18,6 +19,7 @@ import { StatusBadge } from "@artsdiva/components/ui/StatusBadge";
 import { SkeletonDetailCard } from "@artsdiva/components/ui/SkeletonTable";
 import { ConfirmDialog } from "@artsdiva/components/ui/ConfirmDialog";
 import { ImageWithFallback } from "@artsdiva/components/ui/ImagePlaceholder";
+import { LeaseFormContainer } from "@artsdiva/containers/LeaseFormContainer";
 import { useToast } from "@artsdiva/contexts/ToastProvider";
 import { useAuth } from "@artsdiva/hooks/useAuth";
 import type { ArtworkStatus } from "@artsdiva/types/artwork.types";
@@ -32,6 +34,7 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
   const { showToast } = useToast();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [leaseOpen, setLeaseOpen] = useState(false);
 
   const { data: artwork, isLoading, error } = useArtwork(artworkId);
   const deleteMutation = useDeleteArtwork();
@@ -239,6 +242,29 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
             </Card>
           </Box>
         </Box>
+      </Box>
+
+      {/* Lease section */}
+      <Box sx={{ px: 3, pb: 3, maxWidth: 1100 }}>
+        <Card variant="outlined">
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: leaseOpen ? 2 : 0 }}>
+              <Typography variant="subtitle2" sx={{ color: "text.secondary", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                Lease this Artwork
+              </Typography>
+              <Button size="small" variant={leaseOpen ? "outlined" : "contained"} onClick={() => setLeaseOpen((p) => !p)}>
+                {leaseOpen ? "Cancel" : "Lease"}
+              </Button>
+            </Box>
+            <Collapse in={leaseOpen} unmountOnExit>
+              <LeaseFormContainer
+                artworkId={artworkId}
+                onLeased={() => { setLeaseOpen(false); showToast("Artwork leased successfully"); }}
+                onCancel={() => setLeaseOpen(false)}
+              />
+            </Collapse>
+          </CardContent>
+        </Card>
       </Box>
 
       <ConfirmDialog

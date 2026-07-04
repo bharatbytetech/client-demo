@@ -1,5 +1,4 @@
-﻿import { useState } from "react";
-import { useClients } from "@artsdiva/hooks/useClients";
+import { useState } from "react";
 import { useLeases } from "@artsdiva/hooks/useLeases";
 import { LeaseForm, type LeaseFormValues } from "@artsdiva/components/LeaseForm";
 
@@ -8,12 +7,10 @@ const emptyValues: LeaseFormValues = { clientId: "", startDate: "", terms: "" };
 interface LeaseFormContainerProps {
   artworkId: string;
   onLeased: () => void;
+  onCancel?: () => void;
 }
 
-// Rendered inline from the Artwork detail page's "Lease this artwork" button.
-export function LeaseFormContainer({ artworkId, onLeased }: LeaseFormContainerProps) {
-  const { data: clientsData } = useClients({});
-  const clients = clientsData?.data ?? [];
+export function LeaseFormContainer({ artworkId, onLeased, onCancel }: LeaseFormContainerProps) {
   const { isSubmitting, error, fieldErrors, createLease } = useLeases({ onMutate: onLeased });
   const [values, setValues] = useState<LeaseFormValues>(emptyValues);
 
@@ -35,13 +32,13 @@ export function LeaseFormContainer({ artworkId, onLeased }: LeaseFormContainerPr
   return (
     <LeaseForm
       values={values}
-      clients={clients.map((c) => ({ id: c.id, name: c.name }))}
+      artworkId={artworkId}
       isSubmitting={isSubmitting}
       error={error}
       fieldErrors={fieldErrors}
       onChange={handleChange}
       onSubmit={handleSubmit}
+      onCancel={onCancel}
     />
   );
 }
-
