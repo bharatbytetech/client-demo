@@ -68,7 +68,7 @@ export function ArtistListContainer() {
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1200 }}>
+    <Box sx={{ px: { xs: 2.5, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 1200, mx: "auto" }}>
       {/* Header */}
       <Box
         sx={{

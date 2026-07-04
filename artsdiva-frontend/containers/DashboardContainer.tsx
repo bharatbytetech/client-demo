@@ -9,7 +9,6 @@ import CardActionArea from "@mui/material/CardActionArea";
 import Button from "@mui/material/Button";
 import Skeleton from "@mui/material/Skeleton";
 import Alert from "@mui/material/Alert";
-import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import PaletteIcon from "@mui/icons-material/Palette";
 import ImageIcon from "@mui/icons-material/Image";
@@ -63,16 +62,14 @@ export function DashboardContainer() {
   });
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1100 }}>
+    <Box sx={{ px: { xs: 2.5, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 1100, mx: "auto" }}>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" gutterBottom>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" gutterBottom>
           {greetingByHour()}{user ? `, ${user.name.split(" ")[0]}` : ""}
         </Typography>
         <Typography variant="body2" color="text.secondary">{today}</Typography>
       </Box>
-
-      <Divider sx={{ mb: 3 }} />
 
       {error && (
         <Alert severity="warning" sx={{ mb: 3 }}>
@@ -81,7 +78,7 @@ export function DashboardContainer() {
       )}
 
       {/* Quick actions */}
-      <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+      <Box sx={{ display: "flex", gap: 1.5, mb: 4, flexWrap: "wrap" }}>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => void router.push("/artists/new")}>
           Add Artist
         </Button>
@@ -98,7 +95,7 @@ export function DashboardContainer() {
         Overview
       </Typography>
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={2.5} sx={{ mb: 4 }}>
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
               <Grid size={{ xs: 12, sm: 6, md: 3 }} key={i}>
@@ -111,9 +108,23 @@ export function DashboardContainer() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={card.key}>
                   <Card variant="outlined">
                     <CardActionArea onClick={() => void router.push(card.href)}>
-                      <CardContent>
-                        <IconCmp color="primary" sx={{ mb: 1 }} />
-                        <Typography variant="h4" sx={{ fontWeight: 700, lineHeight: 1 }}>
+                      <CardContent sx={{ p: 2.5 }}>
+                        <Box
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: "rgba(25, 118, 210, 0.08)",
+                            color: "primary.main",
+                            mb: 2,
+                          }}
+                        >
+                          <IconCmp fontSize="small" />
+                        </Box>
+                        <Typography variant="h4" sx={{ lineHeight: 1, mb: 0.5 }}>
                           {stats ? stats[card.key] : 0}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
@@ -127,14 +138,12 @@ export function DashboardContainer() {
             })}
       </Grid>
 
-      <Divider sx={{ mb: 3 }} />
-
       {/* Modules */}
       <Typography variant="overline" color="text.secondary" sx={{ display: "block", mb: 1.5 }}>
         Modules
       </Typography>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={2.5}>
         {[
           { icon: PaletteIcon, title: "Artists",  desc: "Manage artist profiles, commission terms, and MOU agreements.", viewHref: "/artists", addHref: "/artists/new" },
           { icon: ImageIcon,   title: "Artworks", desc: "Track the full collection — status, dimensions, acquisition dates, and images.", viewHref: "/artworks", addHref: "/artworks/new" },
@@ -144,8 +153,22 @@ export function DashboardContainer() {
           return (
             <Grid size={{ xs: 12, md: 4 }} key={mod.title}>
               <Card variant="outlined" sx={{ height: "100%" }}>
-                <CardContent sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                  <IconCmp color="primary" sx={{ mb: 1 }} />
+                <CardContent sx={{ display: "flex", flexDirection: "column", height: "100%", p: 2.5 }}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: "rgba(25, 118, 210, 0.08)",
+                      color: "primary.main",
+                      mb: 2,
+                    }}
+                  >
+                    <IconCmp fontSize="small" />
+                  </Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
                     {mod.title}
                   </Typography>

@@ -81,7 +81,7 @@ export function ArtistDetailContainer({
   }
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1100 }}>
+    <Box sx={{ px: { xs: 2.5, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 1100, mx: "auto" }}>
       <Box sx={{ mb: 2 }}>
         <BackLink href="/artists" label="Back to Artists" />
       </Box>

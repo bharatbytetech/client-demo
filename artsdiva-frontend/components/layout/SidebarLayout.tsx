@@ -119,7 +119,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         elevation={0}
         sx={{ borderBottom: "1px solid", borderColor: "divider", backgroundColor: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
       >
-        <Toolbar variant="dense" sx={{ gap: 1 }}>
+        <Toolbar variant="dense" sx={{ gap: 1.5, minHeight: 56, px: { xs: 2, md: 3 } }}>
           <IconButton
             edge="start"
             onClick={() => setOpen((prev) => !prev)}
@@ -169,7 +169,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           flexGrow: 1,
           minHeight: "100vh",
           backgroundColor: "background.default",
-          pt: "48px",
+          pt: "56px",
         }}
       >
         {children}

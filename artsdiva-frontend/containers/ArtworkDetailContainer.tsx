@@ -89,7 +89,7 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
 
   return (
     <Box>
-      <Box sx={{ p: 3, maxWidth: 1100 }}>
+      <Box sx={{ px: { xs: 2.5, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 1100, mx: "auto" }}>
         {/* Breadcrumb */}
         <Box sx={{ mb: 2 }}>
           <BackLink href="/artworks" label="Back to Artworks" />
@@ -243,7 +243,7 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
       </Box>
 
       {/* Lease section */}
-      <Box sx={{ px: 3, pb: 3, maxWidth: 1100 }}>
+      <Box sx={{ px: { xs: 2.5, md: 4 }, pb: { xs: 3, md: 4 }, maxWidth: 1100, mx: "auto" }}>
         <Card variant="outlined">
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: leaseOpen ? 2 : 0 }}>

@@ -56,7 +56,7 @@ export function ClientDetailContainer({ clientId }: ClientDetailContainerProps) 
 
   return (
     <Box>
-      <Box sx={{ p: 3, maxWidth: 1100 }}>
+      <Box sx={{ px: { xs: 2.5, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 1100, mx: "auto" }}>
         {/* Breadcrumb */}
         <Box sx={{ mb: 2 }}>
           <BackLink href="/clients" label="Back to Clients" />

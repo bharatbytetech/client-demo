@@ -60,7 +60,7 @@ export function ClientListContainer() {
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1200 }}>
+    <Box sx={{ px: { xs: 2.5, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 1200, mx: "auto" }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary" }}>Clients</Typography>
