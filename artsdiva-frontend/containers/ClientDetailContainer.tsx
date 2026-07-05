@@ -7,10 +7,13 @@ import Avatar from "@mui/material/Avatar";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Alert from "@mui/material/Alert";
+import Chip from "@mui/material/Chip";
 import { BackLink } from "@artsdiva/components/ui/BackLink";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useClient, useDeleteClient } from "@artsdiva/hooks/useClients";
+import { useLeaseHistory } from "@artsdiva/hooks/useLeases";
+import { LeaseHistoryTable } from "@artsdiva/components/LeaseHistoryTable";
 import { SkeletonDetailCard } from "@artsdiva/components/ui/SkeletonTable";
 import { ConfirmDialog } from "@artsdiva/components/ui/ConfirmDialog";
 import { useToast } from "@artsdiva/contexts/ToastProvider";
@@ -33,6 +36,7 @@ export function ClientDetailContainer({ clientId }: ClientDetailContainerProps) 
 
   const { data: client, isLoading, error } = useClient(clientId);
   const deleteMutation = useDeleteClient();
+  const leaseHistory = useLeaseHistory({ clientId, limit: 50 });
 
   const handleDelete = async () => {
     try {
@@ -160,6 +164,18 @@ export function ClientDetailContainer({ clientId }: ClientDetailContainerProps) 
             </CardContent>
           </Card>
         </Box>
+
+        {/* Lease history */}
+        <Typography variant="h6" sx={{ mb: 1.5 }}>
+          Lease History
+          {leaseHistory.data && <Chip label={leaseHistory.data.total} size="small" sx={{ ml: 1 }} />}
+        </Typography>
+        <LeaseHistoryTable
+          leases={leaseHistory.data?.data ?? []}
+          isLoading={leaseHistory.isLoading}
+          show="artwork"
+          onRowClick={(lease) => void router.push(`/artworks/${lease.artwork.id}`)}
+        />
       </Box>
 
       <ConfirmDialog

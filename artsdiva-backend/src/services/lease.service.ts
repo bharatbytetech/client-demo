@@ -10,7 +10,7 @@ export class ClientNotFoundForLeaseError extends Error {}
 export class ArtworkAlreadyOnActiveLeaseError extends Error {}
 export class ArtworkNotAvailableForLeaseError extends Error {}
 
-export async function listLeases(query: ListLeasesQuery): Promise<PaginatedResponse<Lease>> {
+export async function listLeases(query: ListLeasesQuery): Promise<PaginatedResponse<LeaseWithRelations>> {
   const page = query.page ?? 1;
   const limit = query.limit ?? 20;
 
@@ -22,6 +22,8 @@ export async function listLeases(query: ListLeasesQuery): Promise<PaginatedRespo
   const [data, total] = await Promise.all([
     prisma.lease.findMany({
       where,
+      // History views need the names on both ends of the lease.
+      include: { artwork: true, client: true },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { startDate: "desc" },

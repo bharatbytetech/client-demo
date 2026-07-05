@@ -22,6 +22,12 @@ export interface CreateLeaseDTO {
   terms?: string;
 }
 
+/** Lease as returned by the list endpoint — includes both related records. */
+export interface LeaseWithRefs extends Lease {
+  artwork: { id: string; title: string; images: string[] };
+  client: { id: string; name: string };
+}
+
 export interface ListLeasesParams {
   artworkId?: string;
   clientId?: string;

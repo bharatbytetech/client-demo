@@ -1,11 +1,24 @@
 import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   cancelLease as cancelLeaseRequest,
   completeLease as completeLeaseRequest,
   createLease as createLeaseRequest,
+  getLeases,
 } from "@artsdiva/api/lease.api";
 import { ApiError, type FieldErrors } from "@artsdiva/api/http";
-import type { CreateLeaseDTO, Lease } from "@artsdiva/types/lease.types";
+import type { CreateLeaseDTO, Lease, ListLeasesParams } from "@artsdiva/types/lease.types";
+
+export const LEASES_KEY = "leases";
+
+/** Lease history for an artwork or a client (pass the matching filter). */
+export function useLeaseHistory(params: ListLeasesParams) {
+  return useQuery({
+    queryKey: [LEASES_KEY, "list", params],
+    queryFn: () => getLeases(params),
+    enabled: Boolean(params.artworkId || params.clientId),
+  });
+}
 
 interface UseLeasesOptions {
   // Called after any successful mutation — lets the caller refresh the

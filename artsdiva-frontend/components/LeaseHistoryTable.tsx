@@ -1,54 +1,84 @@
-import type { Artwork } from "@artsdiva/types/artwork.types";
-import type { Lease } from "@artsdiva/types/lease.types";
-import { LeaseStatusBadge } from "@artsdiva/components/LeaseStatusBadge";
-
-export interface LeaseHistoryEntry extends Lease {
-  artwork: Pick<Artwork, "id" | "title" | "images" | "status">;
-}
+import Typography from "@mui/material/Typography";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import { StatusBadge } from "@artsdiva/components/ui/StatusBadge";
+import type { LeaseWithRefs } from "@artsdiva/types/lease.types";
 
 interface LeaseHistoryTableProps {
-  leases: LeaseHistoryEntry[];
-  onArtworkClick: (artworkId: string) => void;
+  leases: LeaseWithRefs[];
+  isLoading?: boolean;
+  /** Which side of the lease to show — the other side is the page we're on. */
+  show: "artwork" | "client";
+  onRowClick?: (lease: LeaseWithRefs) => void;
 }
 
-export function LeaseHistoryTable({ leases, onArtworkClick }: LeaseHistoryTableProps) {
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+export function LeaseHistoryTable({ leases, isLoading, show, onRowClick }: LeaseHistoryTableProps) {
   return (
-    <table className="w-full border-collapse text-sm">
-      <thead>
-        <tr className="border-b text-left">
-          <th className="py-2">Artwork</th>
-          <th className="py-2">Start</th>
-          <th className="py-2">End</th>
-          <th className="py-2">Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {leases.map((lease) => (
-          <tr key={lease.id} onClick={() => onArtworkClick(lease.artwork.id)} className="cursor-pointer border-b">
-            <td className="py-2">
-              <div className="flex items-center gap-2">
-                {lease.artwork.images[0] && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={lease.artwork.images[0]} alt="" className="h-8 w-8 border object-cover" />
-                )}
-                {lease.artwork.title}
-              </div>
-            </td>
-            <td className="py-2">{new Date(lease.startDate).toLocaleDateString()}</td>
-            <td className="py-2">{lease.endDate ? new Date(lease.endDate).toLocaleDateString() : "—"}</td>
-            <td className="py-2">
-              <LeaseStatusBadge status={lease.status} />
-            </td>
-          </tr>
-        ))}
-        {leases.length === 0 && (
-          <tr>
-            <td colSpan={4} className="py-4 text-center">
-              No lease history yet.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
+    <TableContainer component={Paper} variant="outlined">
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>{show === "artwork" ? "Artwork" : "Client"}</TableCell>
+            <TableCell>Start</TableCell>
+            <TableCell>End</TableCell>
+            <TableCell>Rate</TableCell>
+            <TableCell>Status</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                <Typography variant="body2" color="text.secondary">Loading lease history…</Typography>
+              </TableCell>
+            </TableRow>
+          ) : leases.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                <Typography variant="body2" color="text.secondary">No leases yet.</Typography>
+              </TableCell>
+            </TableRow>
+          ) : (
+            leases.map((lease) => (
+              <TableRow
+                key={lease.id}
+                hover={Boolean(onRowClick)}
+                sx={onRowClick ? { cursor: "pointer" } : undefined}
+                onClick={() => onRowClick?.(lease)}
+              >
+                <TableCell>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {show === "artwork" ? lease.artwork.title : lease.client.name}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary">{formatDate(lease.startDate)}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary">
+                    {lease.endDate ? formatDate(lease.endDate) : "—"}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">{lease.rateAmount ?? "—"}</Typography>
+                </TableCell>
+                <TableCell>
+                  <StatusBadge type="lease" status={lease.status} />
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }

@@ -1,9 +1,9 @@
 import { apiRequest, buildQueryString } from "@artsdiva/api/http";
 import type { PaginatedResponse } from "@artsdiva/types/common.types";
-import type { CreateLeaseDTO, Lease, ListLeasesParams } from "@artsdiva/types/lease.types";
+import type { CreateLeaseDTO, Lease, LeaseWithRefs, ListLeasesParams } from "@artsdiva/types/lease.types";
 
-export function getLeases(params?: ListLeasesParams): Promise<PaginatedResponse<Lease>> {
-  return apiRequest<PaginatedResponse<Lease>>(`/api/leases${buildQueryString(params)}`);
+export function getLeases(params?: ListLeasesParams): Promise<PaginatedResponse<LeaseWithRefs>> {
+  return apiRequest<PaginatedResponse<LeaseWithRefs>>(`/api/leases${buildQueryString(params)}`);
 }
 
 export async function getLeaseById(id: string): Promise<Lease> {

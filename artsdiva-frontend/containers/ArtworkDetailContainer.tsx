@@ -14,7 +14,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useQueryClient } from "@tanstack/react-query";
 import { ARTWORKS_KEY, useArtwork, useDeleteArtwork, useUpdateArtworkStatus, useUploadArtworkImages } from "@artsdiva/hooks/useArtworks";
-import { useLeases } from "@artsdiva/hooks/useLeases";
+import { LEASES_KEY, useLeaseHistory, useLeases } from "@artsdiva/hooks/useLeases";
+import { LeaseHistoryTable } from "@artsdiva/components/LeaseHistoryTable";
 import { StatusBadge } from "@artsdiva/components/ui/StatusBadge";
 import { SkeletonDetailCard } from "@artsdiva/components/ui/SkeletonTable";
 import { ConfirmDialog } from "@artsdiva/components/ui/ConfirmDialog";
@@ -50,8 +51,12 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
 
   const queryClient = useQueryClient();
   const leaseActions = useLeases({
-    onMutate: () => queryClient.invalidateQueries({ queryKey: [ARTWORKS_KEY] }),
+    onMutate: async () => {
+      await queryClient.invalidateQueries({ queryKey: [ARTWORKS_KEY] });
+      await queryClient.invalidateQueries({ queryKey: [LEASES_KEY] });
+    },
   });
+  const leaseHistory = useLeaseHistory({ artworkId, limit: 50 });
 
   const handleLeaseAction = async (action: "complete" | "cancel") => {
     const leaseId = artwork?.activeLease?.id;
@@ -350,6 +355,7 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
                   showToast("Artwork leased successfully");
                   // Refetch so the page immediately reflects ON_LEASE + the active lease.
                   void queryClient.invalidateQueries({ queryKey: [ARTWORKS_KEY] });
+                  void queryClient.invalidateQueries({ queryKey: [LEASES_KEY] });
                 }}
                 onCancel={() => setLeaseOpen(false)}
               />
@@ -358,6 +364,20 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
         </Card>
       </Box>
       )}
+
+      {/* Lease history */}
+      <Box sx={{ px: { xs: 2.5, md: 4 }, pb: { xs: 3, md: 4 }, maxWidth: 1100, mx: "auto" }}>
+        <Typography variant="h6" sx={{ mb: 1.5 }}>
+          Lease History
+          {leaseHistory.data && <Chip label={leaseHistory.data.total} size="small" sx={{ ml: 1 }} />}
+        </Typography>
+        <LeaseHistoryTable
+          leases={leaseHistory.data?.data ?? []}
+          isLoading={leaseHistory.isLoading}
+          show="client"
+          onRowClick={(lease) => void router.push(`/clients/${lease.client.id}`)}
+        />
+      </Box>
 
       <ConfirmDialog
         open={deleteOpen}
