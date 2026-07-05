@@ -6,7 +6,6 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -21,8 +20,8 @@ import { DimensionsInput } from "@artsdiva/components/fields/DimensionsInput";
 import { YearPickerField } from "@artsdiva/components/fields/YearPickerField";
 import { FieldLabel } from "@artsdiva/components/fields/FieldInfo";
 import { SkeletonDetailCard } from "@artsdiva/components/ui/SkeletonTable";
+import { StatusBadge } from "@artsdiva/components/ui/StatusBadge";
 import { useToast } from "@artsdiva/contexts/ToastProvider";
-import type { ArtworkStatus } from "@artsdiva/types/artwork.types";
 import type { Dimensions } from "@artsdiva/types/common.types";
 
 const validationSchema = Yup.object({
@@ -41,7 +40,6 @@ const validationSchema = Yup.object({
     .required("Year is required")
     .nullable(),
   acquisitionDate: Yup.string().required("Acquisition date is required"),
-  status: Yup.mixed<ArtworkStatus>().oneOf(["IN_COLLECTION", "ON_LEASE", "SOLD"]).required(),
   notes: Yup.string().max(2000).optional(),
 });
 
@@ -52,7 +50,6 @@ interface FormValues {
   dimensions: Partial<Dimensions>;
   year: number | null;
   acquisitionDate: string;
-  status: ArtworkStatus;
   notes: string;
 }
 
@@ -63,7 +60,6 @@ const EMPTY: FormValues = {
   dimensions: { unit: "cm" },
   year: null,
   acquisitionDate: "",
-  status: "IN_COLLECTION",
   notes: "",
 };
 
@@ -95,7 +91,6 @@ export function ArtworkFormContainer({ artworkId }: ArtworkFormContainerProps) {
         dimensions: artwork.dimensions,
         year: artwork.year,
         acquisitionDate: artwork.acquisitionDate.slice(0, 10),
-        status: artwork.status,
         notes: artwork.notes ?? "",
       }
     : { ...EMPTY, artistId: prefillArtistId ?? "" };
@@ -108,7 +103,6 @@ export function ArtworkFormContainer({ artworkId }: ArtworkFormContainerProps) {
       dimensions: values.dimensions as Dimensions,
       year: values.year!,
       acquisitionDate: values.acquisitionDate,
-      status: values.status,
       notes: values.notes || undefined,
     };
 
@@ -239,21 +233,16 @@ export function ArtworkFormContainer({ artworkId }: ArtworkFormContainerProps) {
                       />
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <FieldLabel label="Status" required info="In Collection = available at the gallery. On Lease = currently rented to a client. Sold = no longer available." />
-                      <TextField
-                        name="status"
-                        size="small"
-                        fullWidth
-                        select
-                        value={values.status}
-                        onChange={handleChange}
-                        error={touched.status && !!errors.status}
-                        helperText={touched.status ? errors.status : undefined}
-                      >
-                        <MenuItem value="IN_COLLECTION">In Collection</MenuItem>
-                        <MenuItem value="ON_LEASE">On Lease</MenuItem>
-                        <MenuItem value="SOLD">Sold</MenuItem>
-                      </TextField>
+                      <FieldLabel label="Status" info="Status is managed from the artwork page: lease it to a client to put it on lease, or use Mark as Sold. New artworks start in the collection." />
+                      {isEdit && artwork ? (
+                        <Box sx={{ pt: 0.75 }}>
+                          <StatusBadge type="artwork" status={artwork.status} />
+                        </Box>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" sx={{ pt: 1 }}>
+                          Starts as In Collection
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
 

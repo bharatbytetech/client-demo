@@ -8,6 +8,7 @@ export class LeaseNotFoundError extends Error {}
 export class ArtworkNotFoundForLeaseError extends Error {}
 export class ClientNotFoundForLeaseError extends Error {}
 export class ArtworkAlreadyOnActiveLeaseError extends Error {}
+export class ArtworkNotAvailableForLeaseError extends Error {}
 
 export async function listLeases(query: ListLeasesQuery): Promise<PaginatedResponse<Lease>> {
   const page = query.page ?? 1;
@@ -48,6 +49,12 @@ export async function createLease(input: CreateLeaseInput): Promise<Lease> {
   const artwork = await prisma.artwork.findFirst({ where: { id: input.artworkId, isDeleted: false } });
   if (!artwork) {
     throw new ArtworkNotFoundForLeaseError("Artwork not found");
+  }
+
+  // Only artworks sitting in the collection can be leased — a SOLD artwork is
+  // gone, and ON_LEASE is caught below with a clearer message.
+  if (artwork.status === "SOLD") {
+    throw new ArtworkNotAvailableForLeaseError("A sold artwork cannot be leased");
   }
 
   const client = await prisma.client.findFirst({ where: { id: input.clientId, isDeleted: false } });

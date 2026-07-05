@@ -34,7 +34,6 @@ export interface CreateArtworkDTO {
   dimensions: Dimensions;
   year: number;
   acquisitionDate: string;
-  status: ArtworkStatus;
   images?: string[];
   notes?: string;
 }

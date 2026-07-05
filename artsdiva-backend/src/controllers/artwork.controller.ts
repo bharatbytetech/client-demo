@@ -16,7 +16,10 @@ function handleArtworkError(err: unknown, res: Response): void {
     res.status(404).json({ message: err.message });
     return;
   }
-  if (err instanceof artworkService.ArtworkHasLeasesError) {
+  if (
+    err instanceof artworkService.ArtworkHasLeasesError ||
+    err instanceof artworkService.InvalidStatusTransitionError
+  ) {
     res.status(400).json({ message: err.message });
     return;
   }

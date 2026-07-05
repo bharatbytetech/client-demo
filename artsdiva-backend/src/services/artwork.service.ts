@@ -12,6 +12,7 @@ import type { PaginatedResponse } from "../types/common.types";
 export class ArtworkNotFoundError extends Error {}
 export class ArtistNotFoundForArtworkError extends Error {}
 export class ArtworkHasLeasesError extends Error {}
+export class InvalidStatusTransitionError extends Error {}
 
 const active = { isDeleted: false };
 
@@ -85,7 +86,6 @@ export async function createArtwork(input: CreateArtworkInput): Promise<Artwork>
       dimensions: input.dimensions,
       year: input.year,
       acquisitionDate: input.acquisitionDate,
-      status: input.status,
       images: input.images ?? [],
       notes: input.notes,
     },
@@ -116,7 +116,6 @@ export async function updateArtwork(id: string, input: UpdateArtworkInput): Prom
       dimensions: input.dimensions,
       year: input.year,
       acquisitionDate: input.acquisitionDate,
-      status: input.status,
       images: input.images,
       notes: input.notes,
     },
@@ -130,6 +129,27 @@ export async function updateArtworkStatus(
   const existing = await prisma.artwork.findFirst({ where: { id, ...active } });
   if (!existing) {
     throw new ArtworkNotFoundError("Artwork not found");
+  }
+
+  // ON_LEASE is driven exclusively by leases: entering it requires creating a
+  // lease (which requires a client), and leaving it requires ending the lease.
+  if (input.status === "ON_LEASE") {
+    throw new InvalidStatusTransitionError(
+      "An artwork can only go on lease through a lease — use the Lease action and select a client."
+    );
+  }
+
+  // input.status is IN_COLLECTION or SOLD here, i.e. always a move off ON_LEASE.
+  if (existing.status === "ON_LEASE") {
+    const activeLease = await prisma.lease.findFirst({
+      where: { artworkId: id, status: "ACTIVE" },
+      select: { id: true },
+    });
+    if (activeLease) {
+      throw new InvalidStatusTransitionError(
+        "This artwork is on an active lease. Complete or cancel the lease first."
+      );
+    }
   }
 
   return prisma.artwork.update({

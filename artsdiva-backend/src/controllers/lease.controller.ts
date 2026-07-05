@@ -11,7 +11,10 @@ function handleLeaseError(err: unknown, res: Response): void {
     res.status(404).json({ message: err.message });
     return;
   }
-  if (err instanceof leaseService.ArtworkAlreadyOnActiveLeaseError) {
+  if (
+    err instanceof leaseService.ArtworkAlreadyOnActiveLeaseError ||
+    err instanceof leaseService.ArtworkNotAvailableForLeaseError
+  ) {
     res.status(400).json({ message: err.message });
     return;
   }

@@ -32,7 +32,8 @@ export const createArtworkSchema = z.object({
   acquisitionDate: z.coerce.date({
     errorMap: () => ({ message: "Acquisition date must be a valid date" }),
   }),
-  status: artworkStatusEnum,
+  // status intentionally omitted: new artworks always start IN_COLLECTION and
+  // status only changes via lease actions or the dedicated status endpoint.
   images: z.array(z.string().url()).optional(),
   notes: z.string().max(2000, "Notes too long").optional(),
 });

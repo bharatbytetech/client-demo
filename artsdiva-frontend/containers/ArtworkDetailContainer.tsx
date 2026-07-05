@@ -5,8 +5,6 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import MenuItem from "@mui/material/MenuItem";
-import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
@@ -14,7 +12,9 @@ import Collapse from "@mui/material/Collapse";
 import { BackLink } from "@artsdiva/components/ui/BackLink";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useArtwork, useDeleteArtwork, useUpdateArtworkStatus, useUploadArtworkImages } from "@artsdiva/hooks/useArtworks";
+import { useQueryClient } from "@tanstack/react-query";
+import { ARTWORKS_KEY, useArtwork, useDeleteArtwork, useUpdateArtworkStatus, useUploadArtworkImages } from "@artsdiva/hooks/useArtworks";
+import { useLeases } from "@artsdiva/hooks/useLeases";
 import { StatusBadge } from "@artsdiva/components/ui/StatusBadge";
 import { SkeletonDetailCard } from "@artsdiva/components/ui/SkeletonTable";
 import { ConfirmDialog } from "@artsdiva/components/ui/ConfirmDialog";
@@ -47,6 +47,22 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
   const deleteMutation = useDeleteArtwork();
   const statusMutation = useUpdateArtworkStatus(artworkId);
   const uploadMutation = useUploadArtworkImages(artworkId);
+
+  const queryClient = useQueryClient();
+  const leaseActions = useLeases({
+    onMutate: () => queryClient.invalidateQueries({ queryKey: [ARTWORKS_KEY] }),
+  });
+
+  const handleLeaseAction = async (action: "complete" | "cancel") => {
+    const leaseId = artwork?.activeLease?.id;
+    if (!leaseId) return;
+    const ok = action === "complete"
+      ? await leaseActions.completeLease(leaseId)
+      : await leaseActions.cancelLease(leaseId);
+    if (ok) {
+      showToast(action === "complete" ? "Lease completed — artwork returned to collection" : "Lease cancelled");
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -227,29 +243,94 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
                 <Typography variant="subtitle2" sx={{ color: "text.secondary", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", mb: 1.5 }}>
                   Status
                 </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1.5 }}>
                   <StatusBadge type="artwork" status={artwork.status} />
                 </Box>
-                <TextField
-                  select
-                  size="small"
-                  fullWidth
-                  value={artwork.status}
-                  onChange={(e) => void handleStatusChange(e.target.value as ArtworkStatus)}
-                  disabled={statusMutation.isPending}
-                  sx={{ mt: 1 }}
-                >
-                  <MenuItem value="IN_COLLECTION">In Collection</MenuItem>
-                  <MenuItem value="ON_LEASE">On Lease</MenuItem>
-                  <MenuItem value="SOLD">Sold</MenuItem>
-                </TextField>
+
+                {artwork.status === "ON_LEASE" && artwork.activeLease ? (
+                  <>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
+                      <Box>
+                        <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mb: 0.25 }}>Leased to</Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "primary.main", fontWeight: 500, cursor: "pointer", "&:hover": { textDecoration: "underline" } }}
+                          onClick={() => void router.push(`/clients/${artwork.activeLease!.clientId}`)}
+                        >
+                          {artwork.activeLease.client.name}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mb: 0.25 }}>Since</Typography>
+                        <Typography variant="body2">
+                          {new Date(artwork.activeLease.startDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                        </Typography>
+                      </Box>
+                      {artwork.activeLease.rateAmount != null && (
+                        <Box>
+                          <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mb: 0.25 }}>Lease Rate</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>{artwork.activeLease.rateAmount}</Typography>
+                        </Box>
+                      )}
+                    </Box>
+                    {leaseActions.error && <Alert severity="error" sx={{ mb: 1.5 }}>{leaseActions.error}</Alert>}
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        disabled={leaseActions.isSubmitting}
+                        onClick={() => void handleLeaseAction("complete")}
+                      >
+                        Complete Lease
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        color="error"
+                        disabled={leaseActions.isSubmitting}
+                        onClick={() => void handleLeaseAction("cancel")}
+                      >
+                        Cancel Lease
+                      </Button>
+                    </Box>
+                  </>
+                ) : artwork.status === "SOLD" ? (
+                  <>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                      This artwork has been sold and can no longer be leased.
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      disabled={statusMutation.isPending}
+                      onClick={() => void handleStatusChange("IN_COLLECTION")}
+                    >
+                      Return to Collection
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                      Available at the gallery. Lease it below, or mark it sold.
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      disabled={statusMutation.isPending}
+                      onClick={() => void handleStatusChange("SOLD")}
+                    >
+                      Mark as Sold
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           </Box>
         </Box>
       </Box>
 
-      {/* Lease section */}
+      {/* Lease section — only an artwork sitting in the collection can be leased */}
+      {artwork.status === "IN_COLLECTION" && (
       <Box sx={{ px: { xs: 2.5, md: 4 }, pb: { xs: 3, md: 4 }, maxWidth: 1100, mx: "auto" }}>
         <Card variant="outlined">
           <CardContent sx={{ p: 3 }}>
@@ -271,6 +352,7 @@ export function ArtworkDetailContainer({ artworkId }: ArtworkDetailContainerProp
           </CardContent>
         </Card>
       </Box>
+      )}
 
       <ConfirmDialog
         open={deleteOpen}

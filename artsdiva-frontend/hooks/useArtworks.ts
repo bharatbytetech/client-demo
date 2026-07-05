@@ -26,9 +26,8 @@ export function useCreateArtwork() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateArtworkDTO) => createArtwork(data),
-    onSuccess: (artwork) => {
-      qc.setQueryData([ARTWORKS_KEY, "detail", artwork.id], artwork);
-      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY, "list"] });
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY] });
     },
   });
 }
@@ -37,9 +36,8 @@ export function useUpdateArtwork(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: UpdateArtworkDTO) => updateArtwork(id, data),
-    onSuccess: (artwork) => {
-      qc.setQueryData([ARTWORKS_KEY, "detail", id], artwork);
-      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY, "list"] });
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY] });
     },
   });
 }
@@ -48,9 +46,10 @@ export function useUpdateArtworkStatus(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (status: ArtworkStatus) => updateArtworkStatus(id, status),
-    onSuccess: (artwork) => {
-      qc.setQueryData([ARTWORKS_KEY, "detail", id], artwork);
-      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY, "list"] });
+    // Invalidate rather than setQueryData: the status endpoint returns the bare
+    // artwork without artist/activeLease, which would clobber the detail cache.
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [ARTWORKS_KEY] });
     },
   });
 }
