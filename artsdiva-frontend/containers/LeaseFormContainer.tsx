@@ -5,13 +5,21 @@ import { useLeases } from "@artsdiva/hooks/useLeases";
 import { LeaseForm, type LeaseFormValues } from "@artsdiva/components/LeaseForm";
 import type { FieldErrors } from "@artsdiva/api/http";
 
-const emptyValues: LeaseFormValues = { clientId: "", startDate: "", rateAmount: "", terms: "" };
+const emptyValues: LeaseFormValues = { clientId: "", startDate: "", endDate: "", rateAmount: "", terms: "" };
 
 // Mirrors backend createLeaseSchema (artsdiva-backend/src/validators/lease.validator.ts)
 // so bad input never has to make a round trip to find out it's invalid.
 const validationSchema = Yup.object({
   clientId: Yup.string().required("Client is required"),
   startDate: Yup.date().typeError("Enter a valid date").required("Start date is required"),
+  endDate: Yup.date()
+    .typeError("Enter a valid date")
+    .optional()
+    .test(
+      "after-start-date",
+      "End date must be after the start date",
+      (value, ctx) => !value || !ctx.parent.startDate || value > new Date(ctx.parent.startDate)
+    ),
   rateAmount: Yup.number()
     .typeError("Must be a number")
     .positive("Must be greater than 0")
@@ -68,6 +76,7 @@ export function LeaseFormContainer({ artworkId, onLeased, onCancel }: LeaseFormC
       artworkId,
       clientId: values.clientId,
       startDate: values.startDate,
+      endDate: values.endDate || undefined,
       rateAmount: Number(values.rateAmount),
       terms: values.terms || undefined,
     }).then((lease) => {

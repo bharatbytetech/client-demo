@@ -24,6 +24,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import { useClients, useDeleteClient } from "@artsdiva/hooks/useClients";
+import { useAuth } from "@artsdiva/hooks/useAuth";
 import { exportClients } from "@artsdiva/api/client.api";
 import { SkeletonTableRows } from "@artsdiva/components/ui/SkeletonTable";
 import { ConfirmDialog } from "@artsdiva/components/ui/ConfirmDialog";
@@ -39,6 +40,8 @@ function initials(name: string) {
 
 export function ClientListContainer() {
   const router = useRouter();
+  const { user } = useAuth();
+  const canDelete = user?.role === "ADMIN";
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -214,11 +217,13 @@ export function ClientListContainer() {
                             <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); setDeleteTarget(client); }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        {canDelete && (
+                          <Tooltip title="Delete">
+                            <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); setDeleteTarget(client); }}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </Box>
                     </TableCell>
                   </TableRow>

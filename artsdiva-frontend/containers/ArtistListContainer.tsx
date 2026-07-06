@@ -24,6 +24,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import { useArtists, useDeleteArtist } from "@artsdiva/hooks/useArtists";
+import { useAuth } from "@artsdiva/hooks/useAuth";
 import { exportArtists } from "@artsdiva/api/artist.api";
 import { StatusBadge } from "@artsdiva/components/ui/StatusBadge";
 import { SkeletonTableRows } from "@artsdiva/components/ui/SkeletonTable";
@@ -44,6 +45,8 @@ function initials(name: string) {
 
 export function ArtistListContainer() {
   const router = useRouter();
+  const { user } = useAuth();
+  const canDelete = user?.role === "ADMIN";
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -320,18 +323,20 @@ export function ArtistListContainer() {
                             <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteTarget(artist);
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        {canDelete && (
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget(artist);
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </Box>
                     </TableCell>
                   </TableRow>
