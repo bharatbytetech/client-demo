@@ -15,8 +15,14 @@ import ImageIcon from "@mui/icons-material/Image";
 import PeopleIcon from "@mui/icons-material/People";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import AddIcon from "@mui/icons-material/Add";
+import { PieChart } from "@mui/x-charts/PieChart";
+import { LineChart } from "@mui/x-charts/LineChart";
 import { getDashboardStats } from "@artsdiva/api/dashboard.api";
 import { useAuth } from "@artsdiva/hooks/useAuth";
+
+// Same colors as StatusBadge's ARTWORK_STATUS_CONFIG, so this chart and the
+// status chips used everywhere else in the app read as the same language.
+const ARTWORK_STATUS_COLORS = { inCollection: "#16A34A", onLease: "#1D4ED8", sold: "#B45309" };
 
 function greetingByHour(): string {
   const h = new Date().getHours();
@@ -26,10 +32,10 @@ function greetingByHour(): string {
 }
 
 const STAT_CARDS = [
-  { key: "artistsCount" as const,      label: "Artists",        icon: PaletteIcon,    href: "/artists" },
-  { key: "artworksCount" as const,     label: "Artworks",       icon: ImageIcon,      href: "/artworks" },
-  { key: "clientsCount" as const,      label: "Clients",        icon: PeopleIcon,     href: "/clients" },
-  { key: "activeLeasesCount" as const, label: "Active Leases",  icon: AssignmentIcon, href: "/artworks?status=ON_LEASE" },
+  { key: "artistsCount" as const,      label: "Artists",        icon: PaletteIcon,    href: "/artists", newThisMonthKey: undefined },
+  { key: "artworksCount" as const,     label: "Artworks",       icon: ImageIcon,      href: "/artworks", newThisMonthKey: "artworks" as const },
+  { key: "clientsCount" as const,      label: "Clients",        icon: PeopleIcon,     href: "/clients", newThisMonthKey: "clients" as const },
+  { key: "activeLeasesCount" as const, label: "Active Leases",  icon: AssignmentIcon, href: "/artworks?status=ON_LEASE", newThisMonthKey: undefined },
 ];
 
 function StatCardSkeleton() {
@@ -130,6 +136,11 @@ export function DashboardContainer() {
                         <Typography variant="body2" color="text.secondary">
                           {card.label}
                         </Typography>
+                        {stats && card.newThisMonthKey && stats.newThisMonth[card.newThisMonthKey] > 0 && (
+                          <Typography variant="caption" sx={{ color: "success.main", fontWeight: 600, display: "block", mt: 0.25 }}>
+                            +{stats.newThisMonth[card.newThisMonthKey]} this month
+                          </Typography>
+                        )}
                       </CardContent>
                     </CardActionArea>
                   </Card>
@@ -137,6 +148,58 @@ export function DashboardContainer() {
               );
             })}
       </Grid>
+
+      {/* Charts — inventory breakdown and 6-month growth trend */}
+      {stats && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="overline" color="text.secondary" sx={{ display: "block", mb: 1.5 }}>
+            Insights
+          </Typography>
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, md: 5 }}>
+              <Card variant="outlined" sx={{ height: "100%" }}>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                    Inventory by Status
+                  </Typography>
+                  <PieChart
+                    series={[
+                      {
+                        data: [
+                          { id: 0, value: stats.artworksByStatus.inCollection, label: "In Collection", color: ARTWORK_STATUS_COLORS.inCollection },
+                          { id: 1, value: stats.artworksByStatus.onLease, label: "On Lease", color: ARTWORK_STATUS_COLORS.onLease },
+                          { id: 2, value: stats.artworksByStatus.sold, label: "Sold", color: ARTWORK_STATUS_COLORS.sold },
+                        ],
+                        innerRadius: 40,
+                        paddingAngle: 2,
+                      },
+                    ]}
+                    height={220}
+                    slotProps={{ legend: { direction: "vertical", position: { vertical: "middle", horizontal: "end" } } }}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, md: 7 }}>
+              <Card variant="outlined" sx={{ height: "100%" }}>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                    Growth — Last 6 Months
+                  </Typography>
+                  <LineChart
+                    height={220}
+                    xAxis={[{ scaleType: "band", data: stats.monthlyTrend.map((m) => m.month) }]}
+                    series={[
+                      { data: stats.monthlyTrend.map((m) => m.artworks), label: "New Artworks", color: "#1D4ED8" },
+                      { data: stats.monthlyTrend.map((m) => m.clients), label: "New Clients", color: "#16A34A" },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
+      )}
 
       {/* Modules */}
       <Typography variant="overline" color="text.secondary" sx={{ display: "block", mb: 1.5 }}>

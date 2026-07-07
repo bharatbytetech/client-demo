@@ -11,6 +11,7 @@ import type { FieldErrors } from "@artsdiva/api/http";
 export interface LeaseFormValues {
   clientId: string;
   startDate: string;
+  endDate: string;
   rateAmount: string;
   terms: string;
 }
@@ -55,20 +56,39 @@ export function LeaseForm({
         />
       </Box>
 
-      <Box>
-        <TextField
-          label="Start Date"
-          type="date"
-          size="small"
-          required
-          fullWidth
-          value={values.startDate}
-          onChange={(e) => onChange("startDate", e.target.value)}
-          error={!!fieldErrors?.startDate}
-          helperText={fieldErrors?.startDate?.[0]}
-          disabled={isSubmitting}
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
+      <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ flex: 1 }}>
+          <FieldLabel label="Start Date" required />
+          <TextField
+            type="date"
+            size="small"
+            required
+            fullWidth
+            value={values.startDate}
+            onChange={(e) => onChange("startDate", e.target.value)}
+            error={!!fieldErrors?.startDate}
+            helperText={fieldErrors?.startDate?.[0]}
+            disabled={isSubmitting}
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <FieldLabel
+            label="End Date"
+            info="Optional — leave blank to create an open-ended lease. Completing the lease later fills this in automatically if it's still empty."
+          />
+          <TextField
+            type="date"
+            size="small"
+            fullWidth
+            value={values.endDate}
+            onChange={(e) => onChange("endDate", e.target.value)}
+            error={!!fieldErrors?.endDate}
+            helperText={fieldErrors?.endDate?.[0]}
+            disabled={isSubmitting}
+            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: values.startDate || undefined } }}
+          />
+        </Box>
       </Box>
 
       <Box>

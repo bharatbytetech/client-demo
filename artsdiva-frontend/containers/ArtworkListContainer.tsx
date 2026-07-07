@@ -24,6 +24,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import { useArtworks, useDeleteArtwork } from "@artsdiva/hooks/useArtworks";
+import { useAuth } from "@artsdiva/hooks/useAuth";
 import { exportArtworks } from "@artsdiva/api/artwork.api";
 import { StatusBadge } from "@artsdiva/components/ui/StatusBadge";
 import { SkeletonTableRows } from "@artsdiva/components/ui/SkeletonTable";
@@ -36,6 +37,8 @@ import type { Artwork, ArtworkSortField, ArtworkStatus } from "@artsdiva/types/a
 
 export function ArtworkListContainer() {
   const router = useRouter();
+  const { user } = useAuth();
+  const canDelete = user?.role === "ADMIN";
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ArtworkStatus | "">("");
@@ -149,6 +152,7 @@ export function ArtworkListContainer() {
         <TextField
           size="small"
           select
+          label="Status"
           value={status}
           onChange={(e) => setStatus(e.target.value as ArtworkStatus | "")}
           sx={{ width: 180 }}
@@ -255,11 +259,13 @@ export function ArtworkListContainer() {
                             <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); setDeleteTarget(artwork); }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        {canDelete && (
+                          <Tooltip title="Delete">
+                            <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); setDeleteTarget(artwork); }}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </Box>
                     </TableCell>
                   </TableRow>
